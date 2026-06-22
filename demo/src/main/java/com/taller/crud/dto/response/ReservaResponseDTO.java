@@ -14,13 +14,11 @@ import lombok.NoArgsConstructor;
 public class ReservaResponseDTO {
 
     private Long id;
-    private Long instructorId;
-    private String nombreInstructor;
-    private Long ambienteId;
-    private String nombreAmbiente;
-    private String tipoAmbiente;
+    private InstructorResponseDTO instructor;
+    private AmbienteDTO ambiente;
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
+    private Integer numeroAprendices;
     private String estado;
     private LocalDateTime fechaCreacion;
 }
