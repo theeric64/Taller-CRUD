@@ -14,28 +14,24 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ReservaRequestDTO {
 
-    @NotNull(message = "El ID del ambiente es obligatorio")
+    @NotNull(message = "El ID del ambiente es obligatorio.")
     private Long ambienteId;
 
-    @NotNull(message = "El ID del instructor es obligatorio")
+    @NotNull(message = "El ID del instructor es obligatorio.")
     private Long instructorId;
 
-    @NotNull(message = "La fecha de inicio es obligatoria")
-    @Future(message = "La fecha de inicio debe ser futura")
+    @NotNull(message = "La fecha de inicio es obligatoria.")
+    @Future(message = "La fecha de inicio debe ser futura.")
     private LocalDateTime fechaInicio;
 
-    @NotNull(message = "La fecha de fin es obligatoria")
-    @Future(message = "La fecha de fin debe ser futura")
+    @NotNull(message = "La fecha de fin es obligatoria.")
+    @Future(message = "La fecha de fin debe ser futura.")
     private LocalDateTime fechaFin;
 
-    /**
-     * Valida que la fecha de fin sea posterior a la fecha de inicio.
-     * Spring llamará automáticamente a este método por la anotación @AssertTrue.
-     */
-    @AssertTrue(message = "La fecha de fin debe ser posterior a la fecha de inicio")
-    public boolean isFechasValidas() {
+    @AssertTrue(message = "La fecha de fin debe ser posterior a la fecha de inicio.")
+    public boolean FechasValidas() {
         if (fechaInicio == null || fechaFin == null) {
-            return true; // No validar aquí, ya lo hacen @NotNull
+            return true; 
         }
         return fechaFin.isAfter(fechaInicio);
     }

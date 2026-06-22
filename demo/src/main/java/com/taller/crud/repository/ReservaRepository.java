@@ -15,21 +15,14 @@ import com.taller.crud.entity.Reserva;
 @Repository
 public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
-    // ============ MÉTODOS DERIVADOS (Spring Data JPA) ============
-    
-    // Buscar reservas por instructor
     List<Reserva> findByInstructorId(Long instructorId);
-    
-    // Buscar reservas por ambiente
+
     List<Reserva> findByAmbienteId(Long ambienteId);
-    
-    // Buscar reservas por estado
+
     List<Reserva> findByEstado(EstadoReserva estado);
-    
-    // Buscar reservas por instructor y estado
+
     List<Reserva> findByInstructorIdAndEstado(Long instructorId, EstadoReserva estado);
-    
-    // Buscar reservas activas en un rango de fechas (para validar solapamiento)
+
     List<Reserva> findByAmbienteIdAndFechaInicioLessThanAndFechaFinGreaterThanAndEstado(
             Long ambienteId, 
             LocalDateTime fechaFin, 
@@ -37,12 +30,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
             EstadoReserva estado
     );
 
-    // ============ CONSULTAS JPQL OPTIMIZADAS ============
-    
-    /**
-     * Cuenta las reservas ACTIVAS de un instructor en un día específico.
-     * Solo cuenta reservas donde la fecha de inicio está en ese día.
-     */
     @Query("SELECT COUNT(r) FROM Reserva r " +
            "WHERE r.instructor.id = :instructorId " +
            "AND r.estado = 'ACTIVA' " +
@@ -52,10 +39,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
             @Param("fecha") LocalDate fecha
     );
 
-    /**
-     * Cuenta las reservas ACTIVAS de un instructor en un rango de fechas.
-     * Valida si hay solapamiento de horarios.
-     */
     @Query("SELECT COUNT(r) FROM Reserva r " +
            "WHERE r.instructor.id = :instructorId " +
            "AND r.estado = 'ACTIVA' " +
@@ -67,9 +50,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
             @Param("fechaFin") LocalDateTime fechaFin
     );
 
-    /**
-     * Encuentra ambientes ocupados en una fecha específica.
-     */
     @Query("SELECT DISTINCT r.ambiente FROM Reserva r " +
            "WHERE r.fechaInicio >= :inicioDia " +
            "AND r.fechaInicio < :finDia " +
@@ -80,9 +60,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
             @Param("estado") EstadoReserva estado
     );
 
-    /**
-     * Búsqueda combinada por instructor, ambiente y fecha.
-     */
     @Query("SELECT r FROM Reserva r " +
            "WHERE (:instructorId IS NULL OR r.instructor.id = :instructorId) " +
            "AND (:ambienteId IS NULL OR r.ambiente.id = :ambienteId) " +
@@ -93,9 +70,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
             @Param("fecha") LocalDate fecha
     );
 
-    /**
-     * Busca reservas por ID con fetch de relaciones (evita LazyInitializationException).
-     */
     @Query("SELECT r FROM Reserva r " +
            "JOIN FETCH r.instructor " +
            "JOIN FETCH r.ambiente " +

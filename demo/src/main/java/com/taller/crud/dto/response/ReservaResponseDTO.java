@@ -23,5 +23,4 @@ public class ReservaResponseDTO {
     private LocalDateTime fechaFin;
     private String estado;
     private LocalDateTime fechaCreacion;
-    private Integer numeroAprendices;
 }

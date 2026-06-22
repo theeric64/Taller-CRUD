@@ -11,14 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// ============ INTERFAZ ============
 public interface AmbienteService {
     List<AmbienteDTO> obtenerTodos();
     AmbienteDTO obtenerPorId(Long id);
     List<AmbienteDTO> obtenerActivos();
 }
 
-// ============ IMPLEMENTACIÓN ============
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)

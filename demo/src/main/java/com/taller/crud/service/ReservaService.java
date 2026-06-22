@@ -2,6 +2,7 @@ package com.taller.crud.service;
 
 import com.taller.crud.dto.request.ReservaRequestDTO;
 import com.taller.crud.dto.response.AmbienteDTO;
+import com.taller.crud.dto.response.InstructorResponseDTO;
 import com.taller.crud.dto.response.ReservaResponseDTO;
 import com.taller.crud.entity.Ambiente;
 import com.taller.crud.entity.EstadoReserva;
@@ -20,7 +21,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// ============ INTERFAZ ============
 public interface ReservaService {
     ReservaResponseDTO crear(ReservaRequestDTO dto);
     ReservaResponseDTO obtenerPorId(Long id);
@@ -30,7 +30,6 @@ public interface ReservaService {
     List<AmbienteDTO> obtenerDisponibilidad(LocalDate fecha);
 }
 
-// ============ IMPLEMENTACIÓN ============
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -42,7 +41,7 @@ class ReservaServiceImpl implements ReservaService {
 
     @Override
     public ReservaResponseDTO crear(ReservaRequestDTO dto) {
-        // Validar instructor
+
         Instructor instructor = instructorRepository.findById(dto.getInstructorId())
                 .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException(
                         "Instructor", dto.getInstructorId()));
@@ -52,12 +51,10 @@ class ReservaServiceImpl implements ReservaService {
                     "El instructor " + instructor.getNombre() + " no está activo");
         }
 
-        // Validar ambiente
         Ambiente ambiente = ambienteRepository.findByIdAndActivoTrue(dto.getAmbienteId())
                 .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException(
                         "Ambiente", dto.getAmbienteId()));
 
-        // Validar límite de 3 reservas por día
         long reservasDelDia = reservaRepository.countByInstructorIdAndFechaAndEstadoActiva(
                 dto.getInstructorId(),
                 dto.getFechaInicio().toLocalDate());
@@ -68,7 +65,6 @@ class ReservaServiceImpl implements ReservaService {
                     dto.getFechaInicio().toLocalDate());
         }
 
-        // Validar solapamiento de horarios en el mismo ambiente
         List<Reserva> reservasSolapadas = reservaRepository
                 .findByAmbienteIdAndFechaInicioLessThanAndFechaFinGreaterThanAndEstado(
                         dto.getAmbienteId(),
@@ -83,7 +79,6 @@ class ReservaServiceImpl implements ReservaService {
                     dto.getFechaFin());
         }
 
-        // Crear reserva
         Reserva reserva = new Reserva();
         reserva.setInstructor(instructor);
         reserva.setAmbiente(ambiente);
@@ -118,22 +113,18 @@ class ReservaServiceImpl implements ReservaService {
         Reserva reserva = reservaRepository.findById(id)
                 .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException("Reserva", id));
 
-        // Validar que no esté cancelada
         if (EstadoReserva.CANCELADA.equals(reserva.getEstado())) {
             throw new ExcepciónNegocio.ReservaCanceladaException(id);
         }
 
-        // Validar instructor
         Instructor instructor = instructorRepository.findById(dto.getInstructorId())
                 .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException(
                         "Instructor", dto.getInstructorId()));
 
-        // Validar ambiente
         Ambiente ambiente = ambienteRepository.findById(dto.getAmbienteId())
                 .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException(
                         "Ambiente", dto.getAmbienteId()));
 
-        // Actualizar datos
         reserva.setInstructor(instructor);
         reserva.setAmbiente(ambiente);
         reserva.setFechaInicio(dto.getFechaInicio());
@@ -179,22 +170,29 @@ class ReservaServiceImpl implements ReservaService {
                 .collect(Collectors.toList());
     }
 
-    // Método privado de conversión
     private ReservaResponseDTO convertirADTO(Reserva reserva) {
+
+        InstructorResponseDTO instructorDTO = InstructorResponseDTO.builder()
+                .id(reserva.getInstructor().getId())
+                .nombre(reserva.getInstructor().getNombre())
+                .email(reserva.getInstructor().getEmail())
+                .especialidad(reserva.getInstructor().getEspecialidad())
+                .aniosExperiencia(reserva.getInstructor().getAniosExperiencia())
+                .activo(reserva.getInstructor().getActivo())
+                .build();
+
+        AmbienteDTO ambienteDTO = AmbienteDTO.builder()
+                .id(reserva.getAmbiente().getId())
+                .nombre(reserva.getAmbiente().getNombre())
+                .tipo(reserva.getAmbiente().getTipo().name())
+                .capacidad(reserva.getAmbiente().getCapacidad())
+                .activo(reserva.getAmbiente().getActivo())
+                .build();
+
         return ReservaResponseDTO.builder()
                 .id(reserva.getId())
-                .instructor(new com.taller.crud.dto.response.InstructorResponseDTO(
-                        reserva.getInstructor().getId(),
-                        reserva.getInstructor().getNombre(),
-                        reserva.getInstructor().getEmail(),
-                        reserva.getInstructor().getEspecialidad(),
-                        reserva.getInstructor().getAniosExperiencia(),
-                        reserva.getInstructor().getActivo()))
-                .ambiente(AmbienteDTO.builder()
-                        .id(reserva.getAmbiente().getId())
-                        .nombre(reserva.getAmbiente().getNombre())
-                        .tipo(reserva.getAmbiente().getTipo().name())
-                        .build())
+                .instructorId(instructorDTO.getId())
+                .ambienteId(ambienteDTO.getId())
                 .fechaInicio(reserva.getFechaInicio())
                 .fechaFin(reserva.getFechaFin())
                 .estado(reserva.getEstado().name())

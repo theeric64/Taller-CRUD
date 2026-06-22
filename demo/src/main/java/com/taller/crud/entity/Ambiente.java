@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "ambientes")  // Plural en DB (buena práctica)
+@Table(name = "ambientes")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,12 +23,11 @@ public class Ambiente {
     private TipoAmbiente tipo;
 
     @Column(nullable = false)
-    private Integer capacidad;  // Integer en vez de int
+    private Integer capacidad;
 
     @Builder.Default
-    private Boolean activo = true;  // Boolean en vez de boolean, valor por defecto
+    private Boolean activo = true;
 
-    // Constructor personalizado para JPA (sin id)
     public Ambiente(String nombre, TipoAmbiente tipo, Integer capacidad) {
         this.nombre = nombre;
         this.tipo = tipo;

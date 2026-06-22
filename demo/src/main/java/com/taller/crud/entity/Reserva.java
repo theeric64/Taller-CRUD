@@ -20,11 +20,11 @@ public class Reserva {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)  // ✅ LAZY por defecto
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ambiente_id", nullable = false)
     private Ambiente ambiente;
 
-    @ManyToOne(fetch = FetchType.LAZY)  // ✅ LAZY por defecto
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "instructor_id", nullable = false)
     private Instructor instructor;
 
@@ -46,17 +46,14 @@ public class Reserva {
     @Builder.Default
     private LocalDateTime fechaCreacion = LocalDateTime.now();
 
-    // Método helper para cancelar
     public void cancelar() {
         this.estado = EstadoReserva.CANCELADA;
     }
 
-    // Método helper para finalizar
     public void finalizar() {
         this.estado = EstadoReserva.FINALIZADA;
     }
 
-    // Método helper para verificar si está activa
     public boolean isActiva() {
         return EstadoReserva.ACTIVA.equals(this.estado);
     }

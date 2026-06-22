@@ -12,7 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "instructores")  // Plural
+@Table(name = "instructores")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,7 +39,6 @@ public class Instructor {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    // Constructor sin id para creación
     public Instructor(String nombre, String email, String especialidad, Integer aniosExperiencia) {
         this.nombre = nombre;
         this.email = email;

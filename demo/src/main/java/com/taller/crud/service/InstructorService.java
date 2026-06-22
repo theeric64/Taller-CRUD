@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// ============ INTERFAZ ============
 public interface InstructorService {
     InstructorResponseDTO crear(InstructorRequestDTO dto);
     InstructorResponseDTO obtenerPorId(Long id);
@@ -21,7 +20,6 @@ public interface InstructorService {
     void eliminar(Long id);
 }
 
-// ============ IMPLEMENTACIÓN ============
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -31,18 +29,17 @@ class InstructorServiceImpl implements InstructorService {
 
     @Override
     public InstructorResponseDTO crear(InstructorRequestDTO dto) {
-        // Validar email único
+
         if (instructorRepository.existsByEmail(dto.getEmail())) {
             throw new ExcepciónNegocio.EmailDuplicadoException(dto.getEmail());
         }
 
-        // Crear entidad
         Instructor instructor = new Instructor();
         instructor.setNombre(dto.getNombre());
         instructor.setEmail(dto.getEmail());
         instructor.setEspecialidad(dto.getEspecialidad());
         instructor.setAniosExperiencia(dto.getAniosExperiencia());
-        instructor.setActivo(true);  // Siempre se crea activo
+        instructor.setActivo(true);
 
         instructor = instructorRepository.save(instructor);
         return convertirADTO(instructor);
@@ -70,13 +67,10 @@ class InstructorServiceImpl implements InstructorService {
         Instructor instructor = instructorRepository.findById(id)
                 .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException("Instructor", id));
 
-        // Validar email único si cambió
         if (!instructor.getEmail().equals(dto.getEmail()) &&
                 instructorRepository.existsByEmail(dto.getEmail())) {
             throw new ExcepciónNegocio.EmailDuplicadoException(dto.getEmail());
         }
-
-        // Actualizar campos permitidos
         instructor.setNombre(dto.getNombre());
         instructor.setEmail(dto.getEmail());
         instructor.setEspecialidad(dto.getEspecialidad());
@@ -94,7 +88,6 @@ class InstructorServiceImpl implements InstructorService {
         instructorRepository.deleteById(id);
     }
 
-    // Método privado de conversión
     private InstructorResponseDTO convertirADTO(Instructor instructor) {
         return InstructorResponseDTO.builder()
                 .id(instructor.getId())
