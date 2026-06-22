@@ -2,7 +2,7 @@ package com.taller.crud.service;
 
 import com.taller.crud.dto.response.AmbienteDTO;
 import com.taller.crud.entity.Ambiente;
-import com.taller.crud.exception.GlobalExceptionHandler;
+import com.taller.crud.exception.ExcepciónNegocio;
 import com.taller.crud.repository.AmbienteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,7 +37,7 @@ class AmbienteServiceImpl implements AmbienteService {
     @Override
     public AmbienteDTO obtenerPorId(Long id) {
         Ambiente ambiente = ambienteRepository.findById(id)
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Ambiente", id));
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException("Ambiente", id));
         return convertirADTO(ambiente);
     }
 

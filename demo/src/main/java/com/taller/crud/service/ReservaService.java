@@ -7,7 +7,7 @@ import com.taller.crud.entity.Ambiente;
 import com.taller.crud.entity.EstadoReserva;
 import com.taller.crud.entity.Instructor;
 import com.taller.crud.entity.Reserva;
-import com.taller.crud.exception.GlobalExceptionHandler;
+import com.taller.crud.exception.ExcepciónNegocio;
 import com.taller.crud.repository.AmbienteRepository;
 import com.taller.crud.repository.InstructorRepository;
 import com.taller.crud.repository.ReservaRepository;
@@ -44,17 +44,17 @@ class ReservaServiceImpl implements ReservaService {
     public ReservaResponseDTO crear(ReservaRequestDTO dto) {
         // Validar instructor
         Instructor instructor = instructorRepository.findById(dto.getInstructorId())
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException(
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException(
                         "Instructor", dto.getInstructorId()));
 
         if (!instructor.getActivo()) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                     "El instructor " + instructor.getNombre() + " no está activo");
         }
 
         // Validar ambiente
         Ambiente ambiente = ambienteRepository.findByIdAndActivoTrue(dto.getAmbienteId())
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException(
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException(
                         "Ambiente", dto.getAmbienteId()));
 
         // Validar límite de 3 reservas por día
@@ -63,7 +63,7 @@ class ReservaServiceImpl implements ReservaService {
                 dto.getFechaInicio().toLocalDate());
 
         if (reservasDelDia >= 3) {
-            throw new GlobalExceptionHandler.LimiteReservasExcedidoException(
+            throw new ExcepciónNegocio.LimiteReservasExcedidoException(
                     dto.getInstructorId(),
                     dto.getFechaInicio().toLocalDate());
         }
@@ -77,7 +77,7 @@ class ReservaServiceImpl implements ReservaService {
                         EstadoReserva.ACTIVA);
 
         if (!reservasSolapadas.isEmpty()) {
-            throw new GlobalExceptionHandler.AmbienteOcupadoException(
+            throw new ExcepciónNegocio.AmbienteOcupadoException(
                     dto.getAmbienteId(),
                     dto.getFechaInicio(),
                     dto.getFechaFin());
@@ -100,7 +100,7 @@ class ReservaServiceImpl implements ReservaService {
     @Transactional(readOnly = true)
     public ReservaResponseDTO obtenerPorId(Long id) {
         Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Reserva", id));
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException("Reserva", id));
         return convertirADTO(reserva);
     }
 
@@ -116,21 +116,21 @@ class ReservaServiceImpl implements ReservaService {
     @Override
     public ReservaResponseDTO actualizar(Long id, ReservaRequestDTO dto) {
         Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Reserva", id));
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException("Reserva", id));
 
         // Validar que no esté cancelada
         if (EstadoReserva.CANCELADA.equals(reserva.getEstado())) {
-            throw new GlobalExceptionHandler.ReservaCanceladaException(id);
+            throw new ExcepciónNegocio.ReservaCanceladaException(id);
         }
 
         // Validar instructor
         Instructor instructor = instructorRepository.findById(dto.getInstructorId())
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException(
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException(
                         "Instructor", dto.getInstructorId()));
 
         // Validar ambiente
         Ambiente ambiente = ambienteRepository.findById(dto.getAmbienteId())
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException(
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException(
                         "Ambiente", dto.getAmbienteId()));
 
         // Actualizar datos
@@ -146,10 +146,10 @@ class ReservaServiceImpl implements ReservaService {
     @Override
     public void cancelar(Long id) {
         Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Reserva", id));
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException("Reserva", id));
 
         if (EstadoReserva.CANCELADA.equals(reserva.getEstado())) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                     "La reserva ya está cancelada");
         }
 

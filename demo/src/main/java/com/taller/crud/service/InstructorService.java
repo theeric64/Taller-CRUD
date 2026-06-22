@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;}
+import java.util.stream.Collectors;
 
 // ============ INTERFAZ ============
 public interface InstructorService {
@@ -33,7 +33,7 @@ class InstructorServiceImpl implements InstructorService {
     public InstructorResponseDTO crear(InstructorRequestDTO dto) {
         // Validar email único
         if (instructorRepository.existsByEmail(dto.getEmail())) {
-            throw new GlobalExceptionHandler.EmailDuplicadoException(dto.getEmail());
+            throw new ExcepciónNegocio.EmailDuplicadoException(dto.getEmail());
         }
 
         // Crear entidad
@@ -52,7 +52,7 @@ class InstructorServiceImpl implements InstructorService {
     @Transactional(readOnly = true)
     public InstructorResponseDTO obtenerPorId(Long id) {
         Instructor instructor = instructorRepository.findById(id)
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Instructor", id));
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException("Instructor", id));
         return convertirADTO(instructor);
     }
 
@@ -68,12 +68,12 @@ class InstructorServiceImpl implements InstructorService {
     @Override
     public InstructorResponseDTO actualizar(Long id, InstructorRequestDTO dto) {
         Instructor instructor = instructorRepository.findById(id)
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Instructor", id));
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException("Instructor", id));
 
         // Validar email único si cambió
         if (!instructor.getEmail().equals(dto.getEmail()) &&
                 instructorRepository.existsByEmail(dto.getEmail())) {
-            throw new GlobalExceptionHandler.EmailDuplicadoException(dto.getEmail());
+            throw new ExcepciónNegocio.EmailDuplicadoException(dto.getEmail());
         }
 
         // Actualizar campos permitidos
@@ -89,7 +89,7 @@ class InstructorServiceImpl implements InstructorService {
     @Override
     public void eliminar(Long id) {
         if (!instructorRepository.existsById(id)) {
-            throw new GlobalExceptionHandler.RecursoNoEncontradoException("Instructor", id);
+            throw new ExcepciónNegocio.RecursoNoEncontradoException("Instructor", id);
         }
         instructorRepository.deleteById(id);
     }

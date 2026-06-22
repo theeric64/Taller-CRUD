@@ -1,4 +1,4 @@
-package com.taller.demo.exception;
+package java.com.taller.demo.exception;
 
 public class ExcepciónNegocio {
     
