@@ -12,7 +12,9 @@ public class Reserva {
     @JoinColumn(name = "ambiente_id", nullable = false)
     private Ambiente ambiente;
 
-    private String nombreInstructor;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "instructor_id", nullable = false)
+    private Instructor instructor;
 
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;

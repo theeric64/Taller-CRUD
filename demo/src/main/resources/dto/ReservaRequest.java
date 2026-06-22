@@ -3,18 +3,18 @@ package dto;
 @Data
 public class ReservaRequest {
 
-    @NotNull
+    @NotNull(message = "El ID del ambiente es obligatorio")
     private Long ambienteId;        
 
-    @NotBlank
-    private String nombreInstructor;
+    @NotNull(message = "El ID del instructor es obligatorio")
+    private Long instructorId;
 
-    @NotNull
+    @NotNull(message = "La fecha de inicio es obligatoria")
     private LocalDateTime fechaInicio; 
 
-    @NotNull
+    @NotNull(message = "La fecha de fin es obligatoria")
     private LocalDateTime fechaFin;
 
-    @Min(1)
+    @Min(value = 1, message = "Debe haber al menos 1 aprendiz")
     private int numeroAprendices;
 }
