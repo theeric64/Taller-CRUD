@@ -8,7 +8,7 @@ import com.taller.crud.entity.Ambiente;
 import com.taller.crud.entity.EstadoReserva;
 import com.taller.crud.entity.Instructor;
 import com.taller.crud.entity.Reserva;
-import com.taller.crud.exception.GlobalExceptionHandler;
+import com.taller.crud.exception.ExcepciónNegocio;
 import com.taller.crud.repository.AmbienteRepository;
 import com.taller.crud.repository.InstructorRepository;
 import com.taller.crud.repository.ReservaRepository;
@@ -52,7 +52,7 @@ class ReservaServiceImpl implements ReservaService {
     public ReservaResponseDTO crear(ReservaRequestDTO dto) {
 
         if (dto.getFechaInicio().isBefore(LocalDateTime.now())) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                 "No se puede reservar en el pasado. La fecha de inicio debe ser futura."
             );
         }
@@ -61,7 +61,7 @@ class ReservaServiceImpl implements ReservaService {
         LocalTime horaFin = dto.getFechaFin().toLocalTime();
 
         if (horaInicio.isBefore(HORA_APERTURA) || horaFin.isAfter(HORA_CIERRE)) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                 String.format("El horario permitido es de %s a %s. " +
                     "Tu reserva es de %s a %s.",
                     HORA_APERTURA, HORA_CIERRE, horaInicio, horaFin)
@@ -69,7 +69,7 @@ class ReservaServiceImpl implements ReservaService {
         }
 
         if (!dto.getFechaInicio().toLocalDate().equals(dto.getFechaFin().toLocalDate())) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                 "La reserva debe ser en el mismo día. No se permiten reservas que crucen días."
             );
         }
@@ -79,7 +79,7 @@ class ReservaServiceImpl implements ReservaService {
         long minutos = duracion.toMinutes() % 60;
 
         if (duracion.toMinutes() < 60) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                 String.format("La reserva debe durar al menos %d hora. " +
                     "Tu reserva dura %d horas y %d minutos.",
                     DURACION_MINIMA_HORAS, horas, minutos)
@@ -88,7 +88,7 @@ class ReservaServiceImpl implements ReservaService {
 
         if (duracion.toHours() > DURACION_MAXIMA_HORAS || 
             (duracion.toHours() == DURACION_MAXIMA_HORAS && duracion.toMinutes() % 60 > 0)) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                 String.format("La reserva no puede durar más de %d horas. " +
                     "Tu reserva dura %d horas y %d minutos.",
                     DURACION_MAXIMA_HORAS, horas, minutos)
@@ -96,29 +96,29 @@ class ReservaServiceImpl implements ReservaService {
         }
 
         Instructor instructor = instructorRepository.findById(dto.getInstructorId())
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException(
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException(
                         "Instructor", dto.getInstructorId()));
 
         if (!instructor.getActivo()) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                     "El instructor " + instructor.getNombre() + " no está activo. " +
                     "No puede realizar reservas."
             );
         }
 
         Ambiente ambiente = ambienteRepository.findById(dto.getAmbienteId())
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException(
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException(
                         "Ambiente", dto.getAmbienteId()));
 
         if (!ambiente.getActivo()) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                     "El ambiente " + ambiente.getNombre() + " no está activo. " +
                     "No se pueden hacer reservas en este ambiente."
             );
         }
 
         if (dto.getNumeroAprendices() != null && dto.getNumeroAprendices() > ambiente.getCapacidad()) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                 String.format("El número de aprendices (%d) supera la capacidad del ambiente %s (%d personas).",
                     dto.getNumeroAprendices(), ambiente.getNombre(), ambiente.getCapacidad())
             );
@@ -129,7 +129,7 @@ class ReservaServiceImpl implements ReservaService {
                 dto.getFechaInicio().toLocalDate());
 
         if (reservasDelDia >= MAX_RESERVAS_POR_DIA) {
-            throw new GlobalExceptionHandler.LimiteReservasExcedidoException(
+            throw new ExcepciónNegocio.LimiteReservasExcedidoException(
                     dto.getInstructorId(),
                     dto.getFechaInicio().toLocalDate());
         }
@@ -143,7 +143,7 @@ class ReservaServiceImpl implements ReservaService {
 
         if (!reservasSolapadas.isEmpty()) {
             Reserva conflicto = reservasSolapadas.get(0);
-            throw new GlobalExceptionHandler.AmbienteOcupadoException(
+            throw new ExcepciónNegocio.AmbienteOcupadoException(
                     dto.getAmbienteId(),
                     conflicto.getFechaInicio(),
                     conflicto.getFechaFin());
@@ -166,7 +166,7 @@ class ReservaServiceImpl implements ReservaService {
     @Transactional(readOnly = true)
     public ReservaResponseDTO obtenerPorId(Long id) {
         Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Reserva", id));
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException("Reserva", id));
         return convertirADTO(reserva);
     }
 
@@ -182,14 +182,14 @@ class ReservaServiceImpl implements ReservaService {
     @Override
     public ReservaResponseDTO actualizar(Long id, ReservaRequestDTO dto) {
         Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Reserva", id));
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException("Reserva", id));
 
         if (EstadoReserva.CANCELADA.equals(reserva.getEstado())) {
-            throw new GlobalExceptionHandler.ReservaCanceladaException(id);
+            throw new ExcepciónNegocio.ReservaCanceladaException(id);
         }
 
         if (EstadoReserva.FINALIZADA.equals(reserva.getEstado())) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                 "No se puede modificar una reserva que ya finalizó."
             );
         }
@@ -199,15 +199,15 @@ class ReservaServiceImpl implements ReservaService {
     @Override
     public void cancelar(Long id) {
         Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Reserva", id));
+                .orElseThrow(() -> new ExcepciónNegocio.RecursoNoEncontradoException("Reserva", id));
 
         if (EstadoReserva.CANCELADA.equals(reserva.getEstado())) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                     "La reserva ya está cancelada.");
         }
 
         if (EstadoReserva.FINALIZADA.equals(reserva.getEstado())) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                     "No se puede cancelar una reserva que ya finalizó.");
         }
 
@@ -216,10 +216,9 @@ class ReservaServiceImpl implements ReservaService {
         Duration tiempoHastaInicio = Duration.between(ahora, inicioReserva);
 
         if (tiempoHastaInicio.toHours() < HORAS_MINIMAS_PARA_CANCELAR) {
-            throw new GlobalExceptionHandler.ValidacionNegocioException(
+            throw new ExcepciónNegocio.ValidacionNegocioException(
                 String.format("No se puede cancelar la reserva. " +
-                    "Debe cancelarse al menos %d horas antes del inicio. " +
-                    "Faltan %d horas y %d minutos para que inicie.",
+                    "Debe cancelarse al menos 2 horas antes del inicio.",
                     HORAS_MINIMAS_PARA_CANCELAR,
                     tiempoHastaInicio.toHours(),
                     tiempoHastaInicio.toMinutes() % 60)
