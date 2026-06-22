@@ -1,9 +1,18 @@
-package dto;
+package com.taller.crud.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class OcupacionDTO {
-    private Long   ambienteId;
+
+    private Long ambienteId;
     private String nombreAmbiente;
-    private double horasReservadas;
-    private double porcentajeOcupacion; 
+    private Double horasReservadas;
+    private Double porcentajeOcupacion;
 }

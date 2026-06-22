@@ -1,14 +1,34 @@
-package com.example.demo.repository;
+package com.taller.crud.repository;
 
-import Model.Instructor;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import java.util.Optional;
+
+import com.taller.crud.entity.Instructor;
 
 @Repository
 public interface InstructorRepository extends JpaRepository<Instructor, Long> {
     
+    // Buscar por nombre exacto
     Optional<Instructor> findByNombre(String nombre);
     
-    boolean existsByNombre(String nombre);
+    // Buscar por email (único)
+    Optional<Instructor> findByEmail(String email);
+    
+    // Verificar si existe por email
+    boolean existsByEmail(String email);
+    
+    // Buscar por nombre (ignorando mayúsculas/minúsculas)
+    List<Instructor> findByNombreContainingIgnoreCase(String nombre);
+    
+    // Buscar instructores activos
+    List<Instructor> findByActivoTrue();
+    
+    // Buscar por especialidad
+    List<Instructor> findByEspecialidad(String especialidad);
+    
+    // Buscar instructor por ID y que esté activo
+    Optional<Instructor> findByIdAndActivoTrue(Long id);
 }

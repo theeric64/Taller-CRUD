@@ -1,204 +1,204 @@
-package com.example.demo.service;
+package com.taller.crud.service;
 
-import Model.Reserva;
-import Model.Instructor;
-import Model.Ambiente;
-import Model.EstadoReserva;
-import com.example.demo.repository.ReservaRepository;
-import com.example.demo.repository.InstructorRepository;
-import com.example.demo.repository.AmbienteRepository;
-import dto.ReservaRequest;
-import dto.ReservaResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import com.taller.crud.dto.request.ReservaRequestDTO;
+import com.taller.crud.dto.response.AmbienteDTO;
+import com.taller.crud.dto.response.ReservaResponseDTO;
+import com.taller.crud.entity.Ambiente;
+import com.taller.crud.entity.EstadoReserva;
+import com.taller.crud.entity.Instructor;
+import com.taller.crud.entity.Reserva;
+import com.taller.crud.exception.GlobalExceptionHandler;
+import com.taller.crud.repository.AmbienteRepository;
+import com.taller.crud.repository.InstructorRepository;
+import com.taller.crud.repository.ReservaRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// ============ INTERFAZ ============
+public interface ReservaService {
+    ReservaResponseDTO crear(ReservaRequestDTO dto);
+    ReservaResponseDTO obtenerPorId(Long id);
+    List<ReservaResponseDTO> obtenerTodas(Long instructorId, Long ambienteId, LocalDate fecha);
+    ReservaResponseDTO actualizar(Long id, ReservaRequestDTO dto);
+    void cancelar(Long id);
+    List<AmbienteDTO> obtenerDisponibilidad(LocalDate fecha);
+}
+
+// ============ IMPLEMENTACIÓN ============
 @Service
-public class ReservaService {
+@RequiredArgsConstructor
+@Transactional
+class ReservaServiceImpl implements ReservaService {
 
-    @Autowired
-    private ReservaRepository reservaRepository;
+    private final ReservaRepository reservaRepository;
+    private final InstructorRepository instructorRepository;
+    private final AmbienteRepository ambienteRepository;
 
-    @Autowired
-    private InstructorRepository instructorRepository;
+    @Override
+    public ReservaResponseDTO crear(ReservaRequestDTO dto) {
+        // Validar instructor
+        Instructor instructor = instructorRepository.findById(dto.getInstructorId())
+                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException(
+                        "Instructor", dto.getInstructorId()));
 
-    @Autowired
-    private AmbienteRepository ambienteRepository;
-
-    /**
-     * Crea una nueva reserva validando:
-     * 1. Que el instructor exista en la base de datos
-     * 2. Que el ambiente exista en la base de datos
-     * 3. Que el instructor no tenga más de 3 reservas ACTIVAS en el mismo día
-     * 4. Que la fecha de inicio sea anterior a la fecha de fin
-     * 
-     * @param reservaRequest La solicitud de creación de reserva
-     * @return La reserva creada con la respuesta DTO
-     * @throws ResponseStatusException 404 si instructor o ambiente no existen
-     * @throws ResponseStatusException 409 si el instructor ya tiene 3 reservas activas ese día
-     * @throws ResponseStatusException 400 si las fechas son inválidas
-     */
-    public ReservaResponse crearReserva(ReservaRequest reservaRequest) {
-        
-        // Validar que las fechas sean válidas
-        if (reservaRequest.getFechaInicio().isAfter(reservaRequest.getFechaFin())) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "La fecha de inicio debe ser anterior a la fecha de fin"
-            );
+        if (!instructor.getActivo()) {
+            throw new GlobalExceptionHandler.ValidacionNegocioException(
+                    "El instructor " + instructor.getNombre() + " no está activo");
         }
 
-        if (reservaRequest.getFechaInicio().isEqual(reservaRequest.getFechaFin())) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "La fecha de inicio y fin no pueden ser iguales"
-            );
+        // Validar ambiente
+        Ambiente ambiente = ambienteRepository.findByIdAndActivoTrue(dto.getAmbienteId())
+                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException(
+                        "Ambiente", dto.getAmbienteId()));
+
+        // Validar límite de 3 reservas por día
+        long reservasDelDia = reservaRepository.countByInstructorIdAndFechaAndEstadoActiva(
+                dto.getInstructorId(),
+                dto.getFechaInicio().toLocalDate());
+
+        if (reservasDelDia >= 3) {
+            throw new GlobalExceptionHandler.LimiteReservasExcedidoException(
+                    dto.getInstructorId(),
+                    dto.getFechaInicio().toLocalDate());
         }
 
-        // Buscar y validar que el instructor exista
-        Instructor instructor = instructorRepository.findById(reservaRequest.getInstructorId())
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Instructor con ID " + reservaRequest.getInstructorId() + " no encontrado"
-            ));
+        // Validar solapamiento de horarios en el mismo ambiente
+        List<Reserva> reservasSolapadas = reservaRepository
+                .findByAmbienteIdAndFechaInicioLessThanAndFechaFinGreaterThanAndEstado(
+                        dto.getAmbienteId(),
+                        dto.getFechaFin(),
+                        dto.getFechaInicio(),
+                        EstadoReserva.ACTIVA);
 
-        // Validar que el instructor esté activo
-        if (!instructor.isActivo()) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "El instructor " + instructor.getNombre() + " no está activo"
-            );
+        if (!reservasSolapadas.isEmpty()) {
+            throw new GlobalExceptionHandler.AmbienteOcupadoException(
+                    dto.getAmbienteId(),
+                    dto.getFechaInicio(),
+                    dto.getFechaFin());
         }
 
-        // Buscar y validar que el ambiente exista
-        Ambiente ambiente = ambienteRepository.findById(reservaRequest.getAmbienteId())
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Ambiente con ID " + reservaRequest.getAmbienteId() + " no encontrado"
-            ));
+        // Crear reserva
+        Reserva reserva = new Reserva();
+        reserva.setInstructor(instructor);
+        reserva.setAmbiente(ambiente);
+        reserva.setFechaInicio(dto.getFechaInicio());
+        reserva.setFechaFin(dto.getFechaFin());
+        reserva.setEstado(EstadoReserva.ACTIVA);
+        reserva.setFechaCreacion(LocalDateTime.now());
 
-        // Validar que el ambiente esté activo
-        if (!ambiente.isActivo()) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "El ambiente " + ambiente.getNombre() + " no está activo"
-            );
-        }
-
-        // Validar la regla de negocio: máximo 3 reservas ACTIVAS por instructor el mismo día
-        long reservasActivasDelDia = reservaRepository.countReservasActivasDelDia(
-            instructor,
-            reservaRequest.getFechaInicio()
-        );
-
-        if (reservasActivasDelDia >= 3) {
-            throw new ResponseStatusException(
-                HttpStatus.CONFLICT,
-                "El instructor " + instructor.getNombre() + 
-                " ya tiene 3 reservas activas el " + 
-                reservaRequest.getFechaInicio().toLocalDate() +
-                ". No puede tener más reservas el mismo día"
-            );
-        }
-
-        // Crear la nueva reserva
-        Reserva reserva = Reserva.builder()
-            .instructor(instructor)
-            .ambiente(ambiente)
-            .fechaInicio(reservaRequest.getFechaInicio())
-            .fechaFin(reservaRequest.getFechaFin())
-            .numeroAprendices(reservaRequest.getNumeroAprendices())
-            .estado(EstadoReserva.ACTIVA)
-            .build();
-
-        Reserva reservaGuardada = reservaRepository.save(reserva);
-
-        return mapToResponse(reservaGuardada);
+        reserva = reservaRepository.save(reserva);
+        return convertirADTO(reserva);
     }
 
-    /**
-     * Obtiene una reserva por ID
-     * 
-     * @param id El ID de la reserva
-     * @return La reserva encontrada
-     * @throws ResponseStatusException 404 si no se encuentra
-     */
-    public ReservaResponse obtenerReserva(Long id) {
+    @Override
+    @Transactional(readOnly = true)
+    public ReservaResponseDTO obtenerPorId(Long id) {
         Reserva reserva = reservaRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Reserva con ID " + id + " no encontrada"
-            ));
-        
-        return mapToResponse(reserva);
+                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Reserva", id));
+        return convertirADTO(reserva);
     }
 
-    /**
-     * Obtiene todas las reservas
-     * 
-     * @return Lista de todas las reservas
-     */
-    public List<ReservaResponse> obtenerTodasLasReservas() {
-        return reservaRepository.findAll()
-            .stream()
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservaResponseDTO> obtenerTodas(Long instructorId, Long ambienteId, LocalDate fecha) {
+        return reservaRepository.findByFiltros(instructorId, ambienteId, fecha)
+                .stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
     }
 
-    /**
-     * Actualiza el estado de una reserva
-     * 
-     * @param id El ID de la reserva
-     * @param nuevoEstado El nuevo estado
-     * @return La reserva actualizada
-     * @throws ResponseStatusException 404 si no se encuentra
-     */
-    public ReservaResponse actualizarEstadoReserva(Long id, EstadoReserva nuevoEstado) {
+    @Override
+    public ReservaResponseDTO actualizar(Long id, ReservaRequestDTO dto) {
         Reserva reserva = reservaRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Reserva con ID " + id + " no encontrada"
-            ));
-        
-        reserva.setEstado(nuevoEstado);
-        Reserva reservaActualizada = reservaRepository.save(reserva);
-        
-        return mapToResponse(reservaActualizada);
+                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Reserva", id));
+
+        // Validar que no esté cancelada
+        if (EstadoReserva.CANCELADA.equals(reserva.getEstado())) {
+            throw new GlobalExceptionHandler.ReservaCanceladaException(id);
+        }
+
+        // Validar instructor
+        Instructor instructor = instructorRepository.findById(dto.getInstructorId())
+                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException(
+                        "Instructor", dto.getInstructorId()));
+
+        // Validar ambiente
+        Ambiente ambiente = ambienteRepository.findById(dto.getAmbienteId())
+                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException(
+                        "Ambiente", dto.getAmbienteId()));
+
+        // Actualizar datos
+        reserva.setInstructor(instructor);
+        reserva.setAmbiente(ambiente);
+        reserva.setFechaInicio(dto.getFechaInicio());
+        reserva.setFechaFin(dto.getFechaFin());
+
+        reserva = reservaRepository.save(reserva);
+        return convertirADTO(reserva);
     }
 
-    /**
-     * Elimina una reserva
-     * 
-     * @param id El ID de la reserva
-     * @throws ResponseStatusException 404 si no se encuentra
-     */
-    public void eliminarReserva(Long id) {
+    @Override
+    public void cancelar(Long id) {
         Reserva reserva = reservaRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Reserva con ID " + id + " no encontrada"
-            ));
-        
-        reservaRepository.delete(reserva);
+                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Reserva", id));
+
+        if (EstadoReserva.CANCELADA.equals(reserva.getEstado())) {
+            throw new GlobalExceptionHandler.ValidacionNegocioException(
+                    "La reserva ya está cancelada");
+        }
+
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        reservaRepository.save(reserva);
     }
 
-    /**
-     * Convierte una entidad Reserva a ReservaResponse DTO
-     */
-    private ReservaResponse mapToResponse(Reserva reserva) {
-        return ReservaResponse.builder()
-            .id(reserva.getId())
-            .ambienteId(reserva.getAmbiente().getId())
-            .nombreAmbiente(reserva.getAmbiente().getNombre())
-            .instructorId(reserva.getInstructor().getId())
-            .nombreInstructor(reserva.getInstructor().getNombre())
-            .fechaInicio(reserva.getFechaInicio())
-            .fechaFin(reserva.getFechaFin())
-            .numeroAprendices(reserva.getNumeroAprendices())
-            .estado(reserva.getEstado())
-            .build();
+    @Override
+    @Transactional(readOnly = true)
+    public List<AmbienteDTO> obtenerDisponibilidad(LocalDate fecha) {
+        LocalDateTime inicioDia = fecha.atStartOfDay();
+        LocalDateTime finDia = fecha.plusDays(1).atStartOfDay();
+
+        List<Ambiente> ambientesOcupados = reservaRepository
+                .findAmbientesOcupadosEnFecha(inicioDia, finDia, EstadoReserva.ACTIVA);
+
+        return ambienteRepository.findByActivoTrue()
+                .stream()
+                .map(ambiente -> AmbienteDTO.builder()
+                        .id(ambiente.getId())
+                        .nombre(ambiente.getNombre())
+                        .tipo(ambiente.getTipo().name())
+                        .capacidad(ambiente.getCapacidad())
+                        .activo(ambiente.getActivo())
+                        .disponible(!ambientesOcupados.contains(ambiente))
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    // Método privado de conversión
+    private ReservaResponseDTO convertirADTO(Reserva reserva) {
+        return ReservaResponseDTO.builder()
+                .id(reserva.getId())
+                .instructor(new com.taller.crud.dto.response.InstructorResponseDTO(
+                        reserva.getInstructor().getId(),
+                        reserva.getInstructor().getNombre(),
+                        reserva.getInstructor().getEmail(),
+                        reserva.getInstructor().getEspecialidad(),
+                        reserva.getInstructor().getAniosExperiencia(),
+                        reserva.getInstructor().getActivo()))
+                .ambiente(AmbienteDTO.builder()
+                        .id(reserva.getAmbiente().getId())
+                        .nombre(reserva.getAmbiente().getNombre())
+                        .tipo(reserva.getAmbiente().getTipo().name())
+                        .build())
+                .fechaInicio(reserva.getFechaInicio())
+                .fechaFin(reserva.getFechaFin())
+                .estado(reserva.getEstado().name())
+                .fechaCreacion(reserva.getFechaCreacion())
+                .build();
     }
 }

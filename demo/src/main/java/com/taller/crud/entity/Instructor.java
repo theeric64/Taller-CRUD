@@ -1,11 +1,18 @@
-package Model;
+package com.taller.crud.entity;
 
-import lombok.*;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "instructor")
+@Table(name = "instructores")  // Plural
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,11 +23,28 @@ public class Instructor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "El nombre del instructor es obligatorio")
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String nombre;
 
+    @Column(unique = true, length = 150)
     private String email;
 
-    private boolean activo = true;
+    @Column(length = 100)
+    private String especialidad;
+
+    @Column(name = "anios_experiencia")
+    private Integer aniosExperiencia;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean activo = true;
+
+    // Constructor sin id para creación
+    public Instructor(String nombre, String email, String especialidad, Integer aniosExperiencia) {
+        this.nombre = nombre;
+        this.email = email;
+        this.especialidad = especialidad;
+        this.aniosExperiencia = aniosExperiencia;
+        this.activo = true;
+    }
 }

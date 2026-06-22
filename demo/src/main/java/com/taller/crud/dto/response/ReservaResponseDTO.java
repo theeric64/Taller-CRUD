@@ -1,8 +1,7 @@
-package dto;
+package com.taller.crud.dto.response;
 
 import java.time.LocalDateTime;
 
-import Model.EstadoReserva;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,15 +11,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ReservaResponse {
+public class ReservaResponseDTO {
 
     private Long id;
-    private Long ambienteId;
-    private String nombreAmbiente;
     private Long instructorId;
     private String nombreInstructor;
+    private Long ambienteId;
+    private String nombreAmbiente;
+    private String tipoAmbiente;
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
-    private int numeroAprendices;
-    private EstadoReserva estado;
+    private String estado;
+    private LocalDateTime fechaCreacion;
+    private Integer numeroAprendices;
 }

@@ -1,9 +1,9 @@
-package Model;
+package com.taller.crud.entity;
 
 public enum TipoAmbiente {
-    SALA, LABORATORIO, AUDITORIO
-}
-
-public enum EstadoReserva {
-    ACTIVA, CANCELADA, FINALIZADA
+    SALA,
+    LABORATORIO,
+    AUDITORIO,
+    TALLER,
+    SALA_REUNIONES
 }

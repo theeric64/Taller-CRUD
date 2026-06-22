@@ -1,16 +1,20 @@
-package dto;
+package com.taller.crud.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class AmbienteRequest {
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class AmbienteDTO {
 
-    @NotBlank(message = "El nombre es obligatorio")
+    private Long id;
     private String nombre;
-
-    @NotNull(message = "El tipo es obligatorio")
-    private TipoAmbiente tipo;  
-
-    @Min(1)
-    private int capacidad;
-
-    private boolean activo = true;
-}
+    private String tipo;          // String, no la entidad TipoAmbiente
+    private Integer capacidad;    // Integer en vez de int (puede ser null)
+    private Boolean activo;       // Boolean en vez de boolean
+    private Boolean disponible;   // Campo útil para el endpoint de disponibilidad
+}   

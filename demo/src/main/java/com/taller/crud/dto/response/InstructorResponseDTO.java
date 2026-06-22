@@ -1,4 +1,4 @@
-package dto;
+package com.taller.crud.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class InstructorResponse {
+public class InstructorResponseDTO {
 
     private Long id;
     private String nombre;
     private String email;
-    private boolean activo;
+    private String especialidad;
+    private Integer aniosExperiencia;
+    private Boolean activo;
 }

@@ -1,137 +1,108 @@
-package com.example.demo.service;
+package com.taller.crud.service;
 
-import Model.Instructor;
-import com.example.demo.repository.InstructorRepository;
-import dto.InstructorRequest;
-import dto.InstructorResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import com.taller.crud.dto.request.InstructorRequestDTO;
+import com.taller.crud.dto.response.InstructorResponseDTO;
+import com.taller.crud.entity.Instructor;
+import com.taller.crud.exception.ExcepciónNegocio;
+import com.taller.crud.repository.InstructorRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Collectors;}
 
+// ============ INTERFAZ ============
+public interface InstructorService {
+    InstructorResponseDTO crear(InstructorRequestDTO dto);
+    InstructorResponseDTO obtenerPorId(Long id);
+    List<InstructorResponseDTO> obtenerTodos();
+    InstructorResponseDTO actualizar(Long id, InstructorRequestDTO dto);
+    void eliminar(Long id);
+}
+
+// ============ IMPLEMENTACIÓN ============
 @Service
-public class InstructorService {
+@RequiredArgsConstructor
+@Transactional
+class InstructorServiceImpl implements InstructorService {
 
-    @Autowired
-    private InstructorRepository instructorRepository;
+    private final InstructorRepository instructorRepository;
 
-    /**
-     * Crea un nuevo instructor
-     * 
-     * @param instructorRequest Los datos del instructor
-     * @return El instructor creado
-     * @throws ResponseStatusException 400 si el nombre ya existe
-     */
-    public InstructorResponse crearInstructor(InstructorRequest instructorRequest) {
-        
-        // Validar que no exista un instructor con el mismo nombre
-        if (instructorRepository.existsByNombre(instructorRequest.getNombre())) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Ya existe un instructor con el nombre: " + instructorRequest.getNombre()
-            );
+    @Override
+    public InstructorResponseDTO crear(InstructorRequestDTO dto) {
+        // Validar email único
+        if (instructorRepository.existsByEmail(dto.getEmail())) {
+            throw new GlobalExceptionHandler.EmailDuplicadoException(dto.getEmail());
         }
 
-        Instructor instructor = Instructor.builder()
-            .nombre(instructorRequest.getNombre())
-            .email(instructorRequest.getEmail())
-            .activo(instructorRequest.isActivo())
-            .build();
+        // Crear entidad
+        Instructor instructor = new Instructor();
+        instructor.setNombre(dto.getNombre());
+        instructor.setEmail(dto.getEmail());
+        instructor.setEspecialidad(dto.getEspecialidad());
+        instructor.setAniosExperiencia(dto.getAniosExperiencia());
+        instructor.setActivo(true);  // Siempre se crea activo
 
-        Instructor instructorGuardado = instructorRepository.save(instructor);
-        
-        return mapToResponse(instructorGuardado);
+        instructor = instructorRepository.save(instructor);
+        return convertirADTO(instructor);
     }
 
-    /**
-     * Obtiene un instructor por ID
-     * 
-     * @param id El ID del instructor
-     * @return El instructor encontrado
-     * @throws ResponseStatusException 404 si no se encuentra
-     */
-    public InstructorResponse obtenerInstructor(Long id) {
+    @Override
+    @Transactional(readOnly = true)
+    public InstructorResponseDTO obtenerPorId(Long id) {
         Instructor instructor = instructorRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Instructor con ID " + id + " no encontrado"
-            ));
-        
-        return mapToResponse(instructor);
+                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Instructor", id));
+        return convertirADTO(instructor);
     }
 
-    /**
-     * Obtiene todos los instructores
-     * 
-     * @return Lista de todos los instructores
-     */
-    public List<InstructorResponse> obtenerTodosLosInstructores() {
+    @Override
+    @Transactional(readOnly = true)
+    public List<InstructorResponseDTO> obtenerTodos() {
         return instructorRepository.findAll()
-            .stream()
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
+                .stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
     }
 
-    /**
-     * Actualiza los datos de un instructor
-     * 
-     * @param id El ID del instructor
-     * @param instructorRequest Los nuevos datos
-     * @return El instructor actualizado
-     * @throws ResponseStatusException 404 si no se encuentra
-     */
-    public InstructorResponse actualizarInstructor(Long id, InstructorRequest instructorRequest) {
+    @Override
+    public InstructorResponseDTO actualizar(Long id, InstructorRequestDTO dto) {
         Instructor instructor = instructorRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Instructor con ID " + id + " no encontrado"
-            ));
+                .orElseThrow(() -> new GlobalExceptionHandler.RecursoNoEncontradoException("Instructor", id));
 
-        // Validar nombre único (si cambió el nombre)
-        if (!instructor.getNombre().equals(instructorRequest.getNombre()) &&
-            instructorRepository.existsByNombre(instructorRequest.getNombre())) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Ya existe un instructor con el nombre: " + instructorRequest.getNombre()
-            );
+        // Validar email único si cambió
+        if (!instructor.getEmail().equals(dto.getEmail()) &&
+                instructorRepository.existsByEmail(dto.getEmail())) {
+            throw new GlobalExceptionHandler.EmailDuplicadoException(dto.getEmail());
         }
 
-        instructor.setNombre(instructorRequest.getNombre());
-        instructor.setEmail(instructorRequest.getEmail());
-        instructor.setActivo(instructorRequest.isActivo());
+        // Actualizar campos permitidos
+        instructor.setNombre(dto.getNombre());
+        instructor.setEmail(dto.getEmail());
+        instructor.setEspecialidad(dto.getEspecialidad());
+        instructor.setAniosExperiencia(dto.getAniosExperiencia());
 
-        Instructor instructorActualizado = instructorRepository.save(instructor);
-        
-        return mapToResponse(instructorActualizado);
+        instructor = instructorRepository.save(instructor);
+        return convertirADTO(instructor);
     }
 
-    /**
-     * Elimina un instructor
-     * 
-     * @param id El ID del instructor
-     * @throws ResponseStatusException 404 si no se encuentra
-     */
-    public void eliminarInstructor(Long id) {
-        Instructor instructor = instructorRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Instructor con ID " + id + " no encontrado"
-            ));
-        
-        instructorRepository.delete(instructor);
+    @Override
+    public void eliminar(Long id) {
+        if (!instructorRepository.existsById(id)) {
+            throw new GlobalExceptionHandler.RecursoNoEncontradoException("Instructor", id);
+        }
+        instructorRepository.deleteById(id);
     }
 
-    /**
-     * Convierte una entidad Instructor a InstructorResponse DTO
-     */
-    private InstructorResponse mapToResponse(Instructor instructor) {
-        return InstructorResponse.builder()
-            .id(instructor.getId())
-            .nombre(instructor.getNombre())
-            .email(instructor.getEmail())
-            .activo(instructor.isActivo())
-            .build();
+    // Método privado de conversión
+    private InstructorResponseDTO convertirADTO(Instructor instructor) {
+        return InstructorResponseDTO.builder()
+                .id(instructor.getId())
+                .nombre(instructor.getNombre())
+                .email(instructor.getEmail())
+                .especialidad(instructor.getEspecialidad())
+                .aniosExperiencia(instructor.getAniosExperiencia())
+                .activo(instructor.getActivo())
+                .build();
     }
 }
