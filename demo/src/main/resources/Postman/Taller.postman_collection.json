@@ -1,0 +1,730 @@
+{
+  "info": {
+    "_postman_id": "10e15aa4-e3f1-41ce-aeb7-85450f4c400e",
+    "name": "Taller",
+    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "56096984",
+    "_collection_link": "https://go.postman.co/collection/56096984-10e15aa4-e3f1-41ce-aeb7-85450f4c400e?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Crear Instructor",
+      "item": [
+        {
+          "name": "Creacion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nombre\": \"Juan Pérez\",\r\n  \"email\": \"juan.perez@test.com\",\r\n  \"especialidad\": \"Java\",\r\n  \"aniosExperiencia\": 5\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "No reservar en pasado",
+      "item": [
+        {
+          "name": "Caso exitoso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-01-10T09:00:00\",\r\n  \"fechaFin\": \"2027-01-10T11:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Caso erroneo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2020-01-10T09:00:00\",\r\n  \"fechaFin\": \"2020-01-10T11:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Horario entre 6 y 22",
+      "item": [
+        {
+          "name": "Caso exitoso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-02-10T08:00:00\",\r\n  \"fechaFin\": \"2027-02-10T10:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Caso erroneo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-02-10T23:00:00\",\r\n  \"fechaFin\": \"2027-02-11T00:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Duración 1-4 horas",
+      "item": [
+        {
+          "name": "Caso exitoso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-03-10T08:00:00\",\r\n  \"fechaFin\": \"2027-03-10T11:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Caso erroneo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-03-10T08:00:00\",\r\n  \"fechaFin\": \"2027-03-10T14:00:00\",\r\n  \"numeroAprendices\": 20\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Mismo día",
+      "item": [
+        {
+          "name": "Caso exitoso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-04-10T18:00:00\",\r\n  \"fechaFin\": \"2027-04-10T20:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Caso erroneo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-04-10T21:00:00\",\r\n  \"fechaFin\": \"2027-04-11T01:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ambiente activo",
+      "item": [
+        {
+          "name": "Caso exitoso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2020-01-10T09:00:00\",\r\n  \"fechaFin\": \"2020-01-10T11:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Caso erroneo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2020-01-10T09:00:00\",\r\n  \"fechaFin\": \"2020-01-10T11:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Instructor activo",
+      "item": [
+        {
+          "name": "Caso exitoso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2020-01-10T09:00:00\",\r\n  \"fechaFin\": \"2020-01-10T11:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Caso erroneo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": 9999,\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-06-10T09:00:00\",\r\n  \"fechaFin\": \"2027-06-10T11:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Capacidad aprendices",
+      "item": [
+        {
+          "name": "Caso exitoso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2020-01-10T09:00:00\",\r\n  \"fechaFin\": \"2020-01-10T11:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Caso erroneo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-07-10T09:00:00\",\r\n  \"fechaFin\": \"2027-07-10T11:00:00\",\r\n  \"numeroAprendices\": 100\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Máximo 3 reservas por día",
+      "item": [
+        {
+          "name": "Reserva 1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-08-10T08:00:00\",\r\n  \"fechaFin\": \"2027-08-10T09:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reserva 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-08-10T10:00:00\",\r\n  \"fechaFin\": \"2027-08-10T11:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reserva 3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-08-10T12:00:00\",\r\n  \"fechaFin\": \"2027-08-10T13:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reserva 4 (Error)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-08-10T14:00:00\",\r\n  \"fechaFin\": \"2027-08-10T15:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sin cruces de horario",
+      "item": [
+        {
+          "name": "Caso exitoso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-09-10T12:00:00\",\r\n  \"fechaFin\": \"2027-09-10T14:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Caso erroneo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"instructorId\": {{instructorId}},\r\n  \"ambienteId\": 1,\r\n  \"fechaInicio\": \"2027-09-10T10:00:00\",\r\n  \"fechaFin\": \"2027-09-10T12:00:00\",\r\n  \"numeroAprendices\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/instructores",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "instructores"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cancelar con 2 horas de anticipación",
+      "item": [
+        {
+          "name": "caso exitoso",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "caso error",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
